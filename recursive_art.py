@@ -1,4 +1,13 @@
-""" TODO: Put your header comment here """
+""" This program generates random computational art. The input argument is the file name.
+    The default size of the image is 350x350 pixels. The RGB values of each pixel are determined
+    by building a random function for each color and then evaluate those funcitons at each
+    pixel. By design, the functions have a depth of 7-9 function levels but the program
+    could easily be altered to create deeper or shallower functions.
+
+    Author : Lakhvinder Jordan <ljordan51@gmail.com>
+    Course : Olin Software Design Spring 2017
+    Date   : 2017-02-21
+"""
 
 import random
 import math
@@ -6,13 +15,21 @@ from PIL import Image
 
 
 def pick_funcs(runs):
-    funcs = ['prod', 'avg', 'cos_pi', 'sin_pi', 'sqrt', 'cubed', 'x', 'y']
-    ind = random.randint(0, 5)
-    if runs == 1:
+    """ Recursive function which randomly chooses a function from the list of functions
+        and returns a nested list of functions to be evaluated.
+
+        runs: number of function levels (also referred to as depth)
+    """
+    funcs = ['prod', 'avg', 'cos_pi', 'sin_pi', 'sqrt', 'cubed', 'x', 'y']  # list of potential functions
+    ind = random.randint(0, 5)  # x and y are only to be used as the final function (or the input)
+    if runs == 1:  # base case for recursive function, last level should be either x or y
         ind = random.randint(6, 7)
         return [funcs[ind]]
     else:
-        if ind < 2:
+        """ Standard recursive case in which pick_funcs returns a list with the function it chose as the first item and a
+            list of the nested functions as the second item by running pick_funcs with runs-1.
+        """
+        if ind < 2:  # if the index is less than 2 then the func is either prod or avg in which case it needs 2 inputs
             nested1 = pick_funcs(runs-1)
             nested2 = pick_funcs(runs-1)
             return [funcs[ind], nested1, nested2]
@@ -23,14 +40,12 @@ def pick_funcs(runs):
 
 def build_random_function(min_depth, max_depth):
     """ Builds a random function of depth at least min_depth and depth
-        at most max_depth (see assignment writeup for definition of depth
-        in this context)
+        at most max_depth. This funciton utilizes the helper function pick_funcs.
+        Therefore the only real use of this runction is to choose the random depth.
 
         min_depth: the minimum depth of the random function
         max_depth: the maximum depth of the random function
         returns: the randomly generated function represented as a nested list
-                 (see assignment writeup for details on the representation of
-                 these functions)
     """
     depth = random.randint(min_depth, max_depth)
     func = pick_funcs(depth)
@@ -38,8 +53,7 @@ def build_random_function(min_depth, max_depth):
 
 
 def evaluate_random_function(f, x, y):
-    """ Evaluate the random function f with inputs x,y
-        Representation of the function f is defined in the assignment writeup
+    """ Evaluate the random function f with inputs x, y
 
         f: the function to evaluate
         x: the value of x to be used to evaluate the function
@@ -113,12 +127,15 @@ def remap_interval(val,
     d = output_interval_start
     e = output_interval_end
     ans = ((a-b)/(c-b))*(e-d)+d
+    # finds ratio of distance of val from input_interval_start, then multiplies that by range of output_interval and adds to output_interval_start
     return ans
 
 
 def color_map(val):
     """ Maps input value between -1 and 1 to an integer 0-255, suitable for
-        use as an RGB color code.
+        use as an RGB color code. This is necessary for translating from the
+        random function output (which is between -1 and 1) to RGB values
+        (which range from 0 to 255).
 
         val: value to remap, must be a float in the interval [-1, 1]
         returns: integer in the interval [0,255]
@@ -182,11 +199,11 @@ def generate_art(filename, x_size=350, y_size=350):
 
 
 if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
+    # import doctest
+    # doctest.testmod()
 
     # Create some computational art!
-    generate_art("myart.png")
+    generate_art("myart2.png")
 
     # Test that PIL is installed correctly
     # test_image("noise.png")
