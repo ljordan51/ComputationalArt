@@ -13,6 +13,15 @@ import random
 import math
 from PIL import Image
 
+prod = lambda x, y: x*y
+avg = lambda x, y: 0.5*(x+y)
+cos_pi = lambda x: math.cos(math.pi*x)
+sin_pi = lambda x: math.sin(math.pi*x)
+sqroot = lambda x: math.sqrt(math.fabs(x))
+cubed = lambda x: x**3
+def xfunc(x,y): return lambda x: x
+def yfunc(x,y): return lambda y: y
+
 
 def pick_funcs(runs):
     """ Recursive function which randomly chooses a function from the list of functions
@@ -20,7 +29,7 @@ def pick_funcs(runs):
 
         runs: number of function levels (also referred to as depth)
     """
-    funcs = ['prod', 'avg', 'cos_pi', 'sin_pi', 'sqrt', 'cubed', 'x', 'y']  # list of potential functions
+    funcs = ['prod', 'avg', 'cos_pi', 'sin_pi', 'sqroot', 'cubed', 'xfunc', 'yfunc']  # list of potential functions
     ind = random.randint(0, 5)  # x and y are only to be used as the final function (or the input)
     if runs == 1:  # base case for recursive function, last level should be either x or y
         ind = random.randint(6, 7)
@@ -50,48 +59,6 @@ def build_random_function(min_depth, max_depth):
     depth = random.randint(min_depth, max_depth)
     func = pick_funcs(depth)
     return func
-
-
-def evaluate_random_function(f, x, y):
-    """ Evaluate the random function f with inputs x, y
-
-        f: the function to evaluate
-        x: the value of x to be used to evaluate the function
-        y: the value of y to be used to evaluate the function
-        returns: the function value
-
-        >>> evaluate_random_function(["x"],-0.5, 0.75)
-        -0.5
-        >>> evaluate_random_function(["y"],0.1,0.02)
-        0.02
-    """
-    if f[0] == 'x':
-        return x
-    elif f[0] == 'y':
-        return y
-    elif f[0] == 'prod':
-        a = evaluate_random_function(f[1], x, y)
-        b = evaluate_random_function(f[2], x, y)
-        return a*b
-    elif f[0] == 'avg':
-        a = evaluate_random_function(f[1], x, y)
-        b = evaluate_random_function(f[2], x, y)
-        return 0.5*(a+b)
-    elif f[0] == 'cos_pi':
-        a = evaluate_random_function(f[1], x, y)
-        return math.cos(math.pi*a)
-    elif f[0] == 'sin_pi':
-        a = evaluate_random_function(f[1], x, y)
-        return math.sin(math.pi*a)
-    elif f[0] == 'sqrt':
-        a = evaluate_random_function(f[1], x, y)
-        return math.sqrt(math.fabs(a))
-    elif f[0] == 'cubed':
-        a = evaluate_random_function(f[1], x, y)
-        return a**3
-    else:
-        print('Print not a valid function')
-        return False
 
 
 def remap_interval(val,
