@@ -19,32 +19,27 @@ cos_pi = lambda x: math.cos(math.pi*x)
 sin_pi = lambda x: math.sin(math.pi*x)
 sqroot = lambda x: math.sqrt(math.fabs(x))
 cubed = lambda x: x**3
-def xfunc(x,y): return lambda x: x
-def yfunc(x,y): return lambda y: y
+xfunc = lambda x, y: x
+yfunc = lambda x, y: y
+FUNCS = [prod, avg, cos_pi, sin_pi, sqroot, cubed, xfunc, yfunc]
 
 
-def pick_funcs(runs):
-    """ Recursive function which randomly chooses a function from the list of functions
-        and returns a nested list of functions to be evaluated.
-
-        runs: number of function levels (also referred to as depth)
-    """
-    funcs = ['prod', 'avg', 'cos_pi', 'sin_pi', 'sqroot', 'cubed', 'xfunc', 'yfunc']  # list of potential functions
+def build_func(runs):
     ind = random.randint(0, 5)  # x and y are only to be used as the final function (or the input)
     if runs == 1:  # base case for recursive function, last level should be either x or y
         ind = random.randint(6, 7)
-        return [funcs[ind]]
+        return FUNCS[ind]
     else:
         """ Standard recursive case in which pick_funcs returns a list with the function it chose as the first item and a
             list of the nested functions as the second item by running pick_funcs with runs-1.
         """
         if ind < 2:  # if the index is less than 2 then the func is either prod or avg in which case it needs 2 inputs
-            nested1 = pick_funcs(runs-1)
-            nested2 = pick_funcs(runs-1)
-            return [funcs[ind], nested1, nested2]
+            nested1 = build_func(runs-1)
+            nested2 = build_func(runs-1)
+            return FUNCS[ind](nested1, nested2)
         else:
-            nested = pick_funcs(runs-1)
-            return [funcs[ind], nested]
+            nested = build_func(runs-1)
+            return FUNCS[ind](nested)
 
 
 def build_random_function(min_depth, max_depth):
@@ -57,7 +52,7 @@ def build_random_function(min_depth, max_depth):
         returns: the randomly generated function represented as a nested list
     """
     depth = random.randint(min_depth, max_depth)
-    func = pick_funcs(depth)
+    func = lambda x, y: build_func(depth)(x, y)
     return func
 
 
