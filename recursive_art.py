@@ -1,58 +1,59 @@
 """ This program generates random computational art. The input argument is the file name.
     The default size of the image is 350x350 pixels. The RGB values of each pixel are determined
-    by building a random function for each color and then evaluate those funcitons at each
-    pixel. By design, the functions have a depth of 7-9 function levels but the program
-    could easily be altered to create deeper or shallower functions.
+    by building a random function for each color using lambda functions and then recursively
+    nesting those lambda functions within each other to create a single function for each color.
+    The functions are then given the pixel coordiantes as x,y inputs and evaluated at each point.
+    This is a going beyond extension of the original computational art project which can be found
+    in the release branch of this repo.
 
     Author : Lakhvinder Jordan <ljordan51@gmail.com>
     Course : Olin Software Design Spring 2017
-    Date   : 2017-02-21
+    Date   : 2017-04-21
 """
 
 import random
 import math
 from PIL import Image
 
+# setting up lambda functions for build_func to use
 prod = lambda x, y: x*y
 avg = lambda x, y: 0.5*(x+y)
-cos_pi = lambda x: math.cos(math.pi*x)
-sin_pi = lambda x: math.sin(math.pi*x)
-sqroot = lambda x: math.sqrt(math.fabs(x))
-cubed = lambda x: x**3
+cos_pi = lambda x, y: math.cos(math.pi*x)
+sin_pi = lambda x, y: math.sin(math.pi*x)
+sqroot = lambda x, y: math.sqrt(math.fabs(x))
+cubed = lambda x, y: x**3
 xfunc = lambda x, y: x
 yfunc = lambda x, y: y
 FUNCS = [prod, avg, cos_pi, sin_pi, sqroot, cubed, xfunc, yfunc]
 
 
 def build_func(runs):
-    ind = random.randint(0, 5)  # x and y are only to be used as the final function (or the input)
+    """ Recursively chooses a function within the FUNCS list and nests it in the functions above it.
+        Always chooses xfunc or yfunc as the last function.
+
+        runs: number of nested functions in each branch
+    """
     if runs == 1:  # base case for recursive function, last level should be either x or y
         ind = random.randint(6, 7)
         return FUNCS[ind]
     else:
-        """ Standard recursive case in which pick_funcs returns a list with the function it chose as the first item and a
-            list of the nested functions as the second item by running pick_funcs with runs-1.
-        """
-        if ind < 2:  # if the index is less than 2 then the func is either prod or avg in which case it needs 2 inputs
-            nested1 = build_func(runs-1)
-            nested2 = build_func(runs-1)
-            return FUNCS[ind](nested1, nested2)
-        else:
-            nested = build_func(runs-1)
-            return FUNCS[ind](nested)
+        ind = random.randint(0, 5)  # x and y are only to be used as the final function (or the input)
+        nested1 = build_func(runs-1)
+        nested2 = build_func(runs-1)
+        return lambda x, y: FUNCS[ind](nested1(x, y), nested2(x, y))
 
 
 def build_random_function(min_depth, max_depth):
     """ Builds a random function of depth at least min_depth and depth
-        at most max_depth. This funciton utilizes the helper function pick_funcs.
+        at most max_depth. This funciton utilizes the helper function build_func.
         Therefore the only real use of this runction is to choose the random depth.
 
         min_depth: the minimum depth of the random function
         max_depth: the maximum depth of the random function
-        returns: the randomly generated function represented as a nested list
+        returns: the randomly generated function represented as a nested lambda function
     """
     depth = random.randint(min_depth, max_depth)
-    func = lambda x, y: build_func(depth)(x, y)
+    func = build_func(depth)
     return func
 
 
@@ -115,24 +116,6 @@ def color_map(val):
     return int(color_code)
 
 
-def test_image(filename, x_size=350, y_size=350):
-    """ Generate test image with random pixels and save as an image file.
-
-        filename: string filename for image (should be .png)
-        x_size, y_size: optional args to set image dimensions (default: 350)
-    """
-    # Create image and loop over all pixels
-    im = Image.new("RGB", (x_size, y_size))
-    pixels = im.load()
-    for i in range(x_size):
-        for j in range(y_size):
-            pixels[i, j] = (random.randint(0, 255),  # Red channel
-                            random.randint(0, 255),  # Green channel
-                            random.randint(0, 255))  # Blue channel
-
-    im.save(filename)
-
-
 def generate_art(filename, x_size=350, y_size=350):
     """ Generate computational art and save as an image file.
 
@@ -140,9 +123,9 @@ def generate_art(filename, x_size=350, y_size=350):
         x_size, y_size: optional args to set image dimensions (default: 350)
     """
     # Functions for red, green, and blue channels - where the magic happens!
-    red_function = build_random_function(7, 9)
-    green_function = build_random_function(7, 9)
-    blue_function = build_random_function(7, 9)
+    red_function = build_random_function(6, 12)
+    green_function = build_random_function(6, 12)
+    blue_function = build_random_function(6, 12)
 
     # Create image and loop over all pixels
     im = Image.new("RGB", (x_size, y_size))
@@ -152,20 +135,14 @@ def generate_art(filename, x_size=350, y_size=350):
             x = remap_interval(i, 0, x_size, -1, 1)
             y = remap_interval(j, 0, y_size, -1, 1)
             pixels[i, j] = (
-                    color_map(evaluate_random_function(red_function, x, y)),
-                    color_map(evaluate_random_function(green_function, x, y)),
-                    color_map(evaluate_random_function(blue_function, x, y))
+                    color_map(red_function(x, y)),
+                    color_map(green_function(x, y)),
+                    color_map(blue_function(x, y))
                     )
 
     im.save(filename)
 
 
 if __name__ == '__main__':
-    # import doctest
-    # doctest.testmod()
-
     # Create some computational art!
-    generate_art("myart2.png")
-
-    # Test that PIL is installed correctly
-    # test_image("noise.png")
+    generate_art("myart8.png")
